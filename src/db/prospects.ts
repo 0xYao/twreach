@@ -3,7 +3,7 @@ import { db } from './client'
 
 interface IProspectStore {
   // read
-  getNotContactedProspects(): Promise<Prospect[]>
+  getNotContactedProspects(limit?: number): Promise<Prospect[]>
 
   // write
   addProspects(prospects: Prospect[]): Promise<void>
@@ -13,13 +13,14 @@ interface IProspectStore {
 }
 
 export const prospectStore: IProspectStore = {
-  async getNotContactedProspects() {
+  async getNotContactedProspects(limit) {
     return db.prospect.findMany({
       where: {
         engagement: {
           is: null,
         },
       },
+      take: limit,
     })
   },
   async addProspects(prospects) {

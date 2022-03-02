@@ -161,11 +161,10 @@ const engageWithUser = async ({
 
 const command: GluegunCommand = {
   name: 'twreach',
-  run: async (toolbox) => {
-    const { print } = toolbox
-
-    const prospects = await prospectStore.getNotContactedProspects()
-    print.success(prospects)
+  run: async ({ print, parameters }) => {
+    const prospects = await prospectStore.getNotContactedProspects(
+      parameters.options.limit ?? 5
+    )
 
     const engagementRecords: Omit<
       EngagementRecord,
