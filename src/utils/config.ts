@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 export const AppConfig = {
   appKey: process.env.APP_KEY ?? '',
   appSecret: process.env.APP_SECRET ?? '',

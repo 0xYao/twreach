@@ -21,6 +21,10 @@ A human-aided Twitter outreach bot. Improve your Twitter outreach efficiency by 
 
 - If the project has more 1,000 ETH (i.e. they are a very successful project) of total volume, then we will like and reply to one of their tweets before we send the DM to increase our chance 
 
+## Common Errors
+
+- You need elevated access for Twitter App you created.
+
 ## Customizing your CLI
 
 Check out the documentation at https://github.com/infinitered/gluegun/tree/master/docs.

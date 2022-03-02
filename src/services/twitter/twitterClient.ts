@@ -1,7 +1,7 @@
 import { TwitterApi } from 'twitter-api-v2'
 import { AppConfig } from '../../utils/config'
 
-const twitterClient = new TwitterApi({
+export const twitterClient = new TwitterApi({
   appKey: AppConfig.appKey,
   appSecret: AppConfig.appSecret,
   accessToken: AppConfig.accessToken,
