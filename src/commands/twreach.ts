@@ -167,20 +167,34 @@ const command: GluegunCommand = {
     const prospects = await prospectStore.getNotContactedProspects()
     print.success(prospects)
 
-    for (const prospect of prospects) {
-      const engagementRecord = await engageWithUser({
-        ...prospect,
-        print,
-      })
+    const engagementRecords: Omit<
+      EngagementRecord,
+      'id' | 'createdAt' | 'updatedAt'
+    >[] = []
 
-      print.success(
-        `\nThe engagement record is ${JSON.stringify(
-          engagementRecord,
-          null,
-          2
-        )}`
-      )
+    for (const prospect of prospects) {
+      try {
+        const engagementRecord = await engageWithUser({
+          ...prospect,
+          print,
+        })
+
+        print.success(
+          `\nThe engagement record is ${JSON.stringify(
+            engagementRecord,
+            null,
+            2
+          )}`
+        )
+
+        engagementRecords.push(engagementRecord)
+      } catch (err) {
+        print.info(err)
+        print.error(`\nFailed to engage with ${prospect.username}.`)
+      }
     }
+
+    await prospectStore.addEngagementRecords(engagementRecords)
   },
 }
 

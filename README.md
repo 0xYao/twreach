@@ -9,7 +9,7 @@ A human-aided Twitter outreach bot. Improve your Twitter outreach efficiency by 
 1. Spin up the database: `yarn postgres:start`
 1. Create an Twitter App if you don't have it already from the [developer portal](https://developer.twitter.com/en/portal/projects-and-apps). Copy and paste the API key and API key secret to .env.
     - Setup your user authentication settings from the "Settings" tab, select the `OAuth 1.0a` and choose `Read and write and Direct message` for the App permissions.
-    - Use `http://localhost:3000/auth_callback` for "Callback url" and any valid urls with   `https` scheme for the "Website url", e.g. `https://nftearn.xyz`.
+    - Use `http://localhost:3000/auth_callback` (any url is fine, we won't be using any authorize_url here) for "Callback url" and any valid urls with   `https` scheme for the "Website url", e.g. `https://nftearn.xyz`.
 1. Go to the "Keys and tokens" tab of the app and copy, generate the access token and paste your the respective key and secrets to `.env`.
 1. Ask the team members which Twitter outreach batch you are responsible for, e.g. the batches are generated via `twreach g-batches --batchSize 3` where the batchSize can be the number of people in the team.
 1. Copy the JSON and add the prospects to the DB: `mkdir src/tmp && mv my-batch.json src/tmp/my-batch.json && twreach create-prospects`

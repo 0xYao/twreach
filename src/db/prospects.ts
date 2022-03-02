@@ -8,7 +8,7 @@ interface IProspectStore {
   // write
   addProspects(prospects: Prospect[]): Promise<void>
   addEngagementRecords(
-    engagements: Omit<EngagementRecord, 'id' | 'createdAt'>[]
+    engagements: Omit<EngagementRecord, 'id' | 'createdAt' | 'updatedAt'>[]
   ): Promise<void>
 }
 
