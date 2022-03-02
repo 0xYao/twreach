@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PreDMEngagement {
+  FOLLOW_ONLY
+  LIKE_AND_REPLY
+}
+
+model EngagementRecord {
+  id                    Int             @id @default(autoincrement())
+  repliedTweetsCount    Int             @default(0)
+  replied               Boolean         @default(false)
+  preDMEngagement       PreDMEngagement @default(FOLLOW_ONLY)
+  prospectUsername      String          @unique
+  prospect              Prospect        @relation(fields: [prospectUsername], references: [username])
+  messageVariationIndex Int
+  message               String
+  withImage             Boolean         @default(false)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt()
+}
+
+model Prospect {
+  username        String            @id
+  userId          String?
+  projectName     String?
+  greetingName    String?
+  preDMEngagement PreDMEngagement   @default(FOLLOW_ONLY)
+  engagementId    Int?
+  engagement      EngagementRecord?
+}
