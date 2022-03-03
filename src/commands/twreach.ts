@@ -10,7 +10,12 @@ import {
 } from '../services/twitter/engage'
 import { likeTweet, replyToTweet } from '../services/twitter/tweets'
 import { twitterV1Client } from '../services/twitter/twitterClient'
-import { EngagementRecord, Maybe, Prospect } from '../types'
+import {
+  EngagementErrorRecordCreateManyInput,
+  EngagementRecordCreateManyInput,
+  Maybe,
+  Prospect,
+} from '../types'
 import { random, sleep } from '../utils'
 
 type DMVariation = {
@@ -69,10 +74,9 @@ const engageWithUser = async ({
   greetingName,
   projectName,
   preDMEngagement = PreDMEngagement.LIKE_AND_REPLY,
-}: EngageWithUserInput): Promise<
-  Omit<EngagementRecord, 'id' | 'createdAt' | 'updatedAt'>
-> => {
+}: EngageWithUserInput): Promise<EngagementRecordCreateManyInput> => {
   let repliedTweetsCount = 0
+  let _preDMEngagement = preDMEngagement
 
   print.info(`Engaging with ${username}...`)
   const { tweets, user } = await getTwitterTimeline(username)
@@ -82,45 +86,59 @@ const engageWithUser = async ({
   await followTwitterUser(userId)
   print.info(`Your followed ${userId}`)
 
-  if (preDMEngagement === PreDMEngagement.LIKE_AND_REPLY) {
+  if (_preDMEngagement === PreDMEngagement.LIKE_AND_REPLY) {
     const tweetsResp = await prompts({
       min: 1,
       name: 'tweets',
       type: 'multiselect',
       hint: 'Space to select. Return to submit',
       message: 'Pick some tweets from the timeline to interact with',
-      choices: tweets.map((tweet) => {
-        return {
-          title: tweet.text + '\n\n',
-          value: { id: tweet.id, text: tweet.text },
-        }
-      }),
+      choices: [
+        ...tweets.map((tweet) => {
+          return {
+            title: tweet.text + '\n\n',
+            value: { id: tweet.id, text: tweet.text },
+          }
+        }),
+        {
+          title: 'Follow this project only',
+          value: PreDMEngagement.FOLLOW_ONLY,
+        },
+      ],
     })
 
-    // Like and reply to the tweet I want to engage with
-    for (const tweet of tweetsResp.tweets) {
-      const replyResp = await prompts({
-        type: 'text',
-        name: 'value',
-        message:
-          'Write your reply for this tweet:\n\n' +
-          print.colors.green(tweet.text),
-      })
-
-      await likeTweet(tweet.id)
-      print.info('You liked ' + print.colors.green(`tweet ${tweet.id}`))
-
-      await replyToTweet(tweet.id, replyResp.value)
-      print.info(
-        `Replied to tweet ${tweet.id}: ${print.colors.green(replyResp.value)}`
-      )
+    for (const value of tweetsResp.tweets) {
+      if (value === PreDMEngagement.FOLLOW_ONLY) {
+        _preDMEngagement = PreDMEngagement.FOLLOW_ONLY
+      }
     }
 
-    repliedTweetsCount = tweetsResp.tweets.length
+    // Like and reply to the tweet I want to engage with
+    if (_preDMEngagement === PreDMEngagement.LIKE_AND_REPLY) {
+      for (const tweet of tweetsResp.tweets) {
+        const replyResp = await prompts({
+          type: 'text',
+          name: 'value',
+          message:
+            'Write your reply for this tweet:\n\n' +
+            print.colors.green(tweet.text),
+        })
+
+        await likeTweet(tweet.id)
+        print.info('You liked ' + print.colors.green(`tweet ${tweet.id}`))
+
+        await replyToTweet(tweet.id, replyResp.value)
+        print.info(
+          `Replied to tweet ${tweet.id}: ${print.colors.green(replyResp.value)}`
+        )
+      }
+
+      repliedTweetsCount = tweetsResp.tweets.length
+    }
   }
 
   // Wait for a bit after you have already engaged with their tweet, don't make it seem spammy
-  if (preDMEngagement === PreDMEngagement.LIKE_AND_REPLY) {
+  if (_preDMEngagement === PreDMEngagement.LIKE_AND_REPLY) {
     print.warning(`Waiting for 10 seconds before direct messaging...`)
     await sleep(10 * SECOND)
   }
@@ -151,8 +169,8 @@ const engageWithUser = async ({
   return {
     replied: false,
     repliedTweetsCount,
-    preDMEngagement,
     prospectUsername: username,
+    preDMEngagement: _preDMEngagement,
     message: dmMessage.message.text,
     messageVariationIndex: dmMessage.index,
     withImage: dmMessage.message.withImage,
@@ -166,10 +184,8 @@ const command: GluegunCommand = {
       parameters.options.limit ?? 5
     )
 
-    const engagementRecords: Omit<
-      EngagementRecord,
-      'id' | 'createdAt' | 'updatedAt'
-    >[] = []
+    const engagementRecords: EngagementRecordCreateManyInput[] = []
+    const engagementErrors: EngagementErrorRecordCreateManyInput[] = []
 
     for (const prospect of prospects) {
       try {
@@ -190,10 +206,16 @@ const command: GluegunCommand = {
       } catch (err) {
         print.info(err)
         print.error(`\nFailed to engage with ${prospect.username}.`)
+
+        engagementErrors.push({
+          prospectUsername: prospect.username,
+          errorMessage: err instanceof Error ? err.message : 'Unknown error.',
+        })
       }
     }
 
     await prospectStore.addEngagementRecords(engagementRecords)
+    await prospectStore.addEngagementErrors(engagementErrors)
   },
 }
 

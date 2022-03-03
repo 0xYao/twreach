@@ -46,3 +46,5 @@ $ npm publish
 # License
 
 MIT - see LICENSE
+
+- Add an option to follow only or skip or like the tweet only

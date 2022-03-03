@@ -1,4 +1,8 @@
-import { EngagementRecord, Prospect } from '../types'
+import {
+  EngagementErrorRecordCreateManyInput,
+  EngagementRecordCreateManyInput,
+  Prospect,
+} from '../types'
 import { db } from './client'
 
 interface IProspectStore {
@@ -8,7 +12,11 @@ interface IProspectStore {
   // write
   addProspects(prospects: Prospect[]): Promise<void>
   addEngagementRecords(
-    engagements: Omit<EngagementRecord, 'id' | 'createdAt' | 'updatedAt'>[]
+    engagements: EngagementRecordCreateManyInput[]
+  ): Promise<void>
+
+  addEngagementErrors(
+    errors: EngagementErrorRecordCreateManyInput[]
   ): Promise<void>
 }
 
@@ -17,6 +25,9 @@ export const prospectStore: IProspectStore = {
     return db.prospect.findMany({
       where: {
         engagement: {
+          is: null,
+        },
+        engagementError: {
           is: null,
         },
       },
@@ -31,6 +42,11 @@ export const prospectStore: IProspectStore = {
   async addEngagementRecords(engagements) {
     await db.engagementRecord.createMany({
       data: engagements,
+    })
+  },
+  async addEngagementErrors(errors) {
+    await db.engagementErrorRecord.createMany({
+      data: errors,
     })
   },
 }

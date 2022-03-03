@@ -29,12 +29,23 @@ model EngagementRecord {
   updatedAt             DateTime        @updatedAt()
 }
 
+model EngagementErrorRecord {
+  id               Int      @id @default(autoincrement())
+  errorMessage     String
+  prospect         Prospect @relation(fields: [prospectUsername], references: [username])
+  prospectUsername String   @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt()
+}
+
 model Prospect {
-  username        String            @id
-  userId          String?
-  projectName     String?
-  greetingName    String?
-  preDMEngagement PreDMEngagement   @default(FOLLOW_ONLY)
-  engagementId    Int?
-  engagement      EngagementRecord?
+  username          String                 @id
+  userId            String?
+  projectName       String?
+  greetingName      String?
+  preDMEngagement   PreDMEngagement        @default(FOLLOW_ONLY)
+  engagementId      Int?
+  engagement        EngagementRecord?
+  engagementErrorId Int?
+  engagementError   EngagementErrorRecord?
 }
