@@ -23,6 +23,9 @@ type DMVariation = {
   withImage: boolean
 }
 
+// TODO:
+// 1. Allow message customisation and gitignore the messages.
+// 2. Replace the withImage field with the image string value. This requires a db schema change
 const getVariations = (
   name?: Maybe<string>,
   projectName?: Maybe<string>
@@ -216,6 +219,12 @@ const command: GluegunCommand = {
 
     await prospectStore.addEngagementRecords(engagementRecords)
     await prospectStore.addEngagementErrors(engagementErrors)
+
+    // Report stats
+    const outreachStats = await prospectStore.getOutreachStats()
+    print.success(
+      `\nThe outreach statistics are: ${JSON.stringify(outreachStats, null, 2)}`
+    )
   },
 }
 
