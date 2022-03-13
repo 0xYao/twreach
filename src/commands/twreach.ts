@@ -10,46 +10,14 @@ import {
 } from '../services/twitter/engage'
 import { likeTweet, replyToTweet } from '../services/twitter/tweets'
 import { twitterV1Client } from '../services/twitter/twitterClient'
+import { customImplStore } from '../tmp/custom-impl'
 import {
+  DMVariation,
   EngagementErrorRecordCreateManyInput,
   EngagementRecordCreateManyInput,
-  Maybe,
   Prospect,
 } from '../types'
 import { random, sleep } from '../utils'
-
-type DMVariation = {
-  text: string
-  imagePath?: string
-}
-
-// TODO:
-// 1. Allow message customisation and gitignore the messages.
-const getVariations = (
-  name?: Maybe<string>,
-  projectName?: Maybe<string>
-): DMVariation[] => {
-  const greeting = name ? `Hey ${name} 👋` + ',' : `Hey 👋` + ','
-  const congratulations = projectName
-    ? `Congrats on all the success from ${projectName} 🎉.`
-    : `Congrats on all the success from the project 🎉.`
-
-  const variationOne: DMVariation = {
-    text: `${greeting}\n\n${congratulations} I was just wondering if you knew who I could talk to about community engagement?\n\nI'm part of a ex-bigtech dev team building tooling for community managers (focused on incentivizing social engagement + rewarding top community members).\n\nLooking to learn more about problems that community leads are facing right now (and to see if there is anything we can build to make your life easier).\n\nWe’re launching with a couple of other projects soon @indexcoop and @soundmintxyz`,
-  }
-
-  const variationTwo: DMVariation = {
-    imagePath: './src/assets/dashboard.jpeg',
-    text: `${greeting}\n\n${congratulations} I was just wondering if you knew who I could talk to about community engagement\n\nI'm part of a ex-bigtech dev team building a social activity dashboard that helps you track and reward top community members for their contributions. Keen to hear your thoughts.\n\np.s. prototype design attached. we’re launching our alpha with a couple of other projects soon @indexcoop and @soundmintxyz`,
-  }
-
-  const variationThree: DMVariation = {
-    imagePath: './src/assets/dashboard.jpeg',
-    text: `${greeting}\n\n${congratulations} I was just wondering if you knew who I could talk to about community engagement?\n\nI'm part of an ex-bigtech dev team building tooling for some of the top DAOs/projects. We’re launching with @indexcoop and @soundmintxyz.\n\nUp for a short chat? Keen to learn about your background and the problems you faced when starting the project\n\np.s. prototype design of our first product (a social activity dashboard attached)`,
-  }
-
-  return [variationOne, variationTwo, variationThree]
-}
 
 const getRandomDMMessage = <T>(
   messages: T[]
@@ -145,7 +113,10 @@ const engageWithUser = async ({
   }
 
   const dmMessage = getRandomDMMessage<DMVariation>(
-    getVariations(greetingName, projectName)
+    customImplStore.getDMVariations({
+      projectName,
+      name: greetingName,
+    })
   )
   if (dmMessage.message.imagePath) {
     const mediaId = await twitterV1Client.uploadMedia(
