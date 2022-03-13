@@ -16,6 +16,8 @@ export type EngagementRecordCreateManyInput =
 export type EngagementErrorRecordCreateManyInput =
   Prisma.EngagementErrorRecordCreateManyInput
 
+export type FollowUpCreateManyInput = Prisma.FollowUpCreateManyInput
+
 export type DMVariation = {
   text: string
   imagePath?: string
@@ -30,4 +32,5 @@ export type GetDMVariationsFunc = (input: GetDMVariationInput) => DMVariation[]
 
 export interface CustomImplStore {
   getDMVariations: GetDMVariationsFunc
+  getFollowUpVariations: GetDMVariationsFunc
 }

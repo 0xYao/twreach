@@ -17,3 +17,17 @@ export const random = (min: number, max: number): number => {
 
   return Math.floor(Math.random() * (_max - _min + 1)) + _min
 }
+
+export const getRandomFromArray = <T>(
+  dataArray: T[]
+): {
+  index: number
+  data: T
+} => {
+  const index = random(0, dataArray.length - 1)
+
+  return {
+    index,
+    data: dataArray[index],
+  }
+}

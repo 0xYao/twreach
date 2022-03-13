@@ -17,21 +17,8 @@ import {
   EngagementRecordCreateManyInput,
   Prospect,
 } from '../types'
-import { random, sleep } from '../utils'
-
-const getRandomDMMessage = <T>(
-  messages: T[]
-): {
-  index: number
-  message: T
-} => {
-  const index = random(0, messages.length - 1)
-
-  return {
-    index,
-    message: messages[index],
-  }
-}
+import { getRandomFromArray, sleep } from '../utils'
+import { NotImplementedError } from '../utils/errors'
 
 type EngageWithUserInput = Prospect & {
   print: GluegunPrint
@@ -112,27 +99,27 @@ const engageWithUser = async ({
     await sleep(10 * SECOND)
   }
 
-  const dmMessage = getRandomDMMessage<DMVariation>(
+  const dmMessage = getRandomFromArray<DMVariation>(
     customImplStore.getDMVariations({
       projectName,
       name: greetingName,
     })
   )
-  if (dmMessage.message.imagePath) {
+  if (dmMessage.data.imagePath) {
     const mediaId = await twitterV1Client.uploadMedia(
-      dmMessage.message.imagePath,
+      dmMessage.data.imagePath,
       { target: 'dm' }
     )
 
     await twitterDm({
       recipient_id: userId,
-      text: dmMessage.message.text,
+      text: dmMessage.data.text,
       attachment: { type: 'media', media: { id: mediaId } },
     })
   } else {
     await twitterDm({
       recipient_id: userId,
-      text: dmMessage.message.text,
+      text: dmMessage.data.text,
     })
   }
 
@@ -142,9 +129,9 @@ const engageWithUser = async ({
     repliedTweetsCount,
     prospectUsername: username,
     preDMEngagement: _preDMEngagement,
-    message: dmMessage.message.text,
+    message: dmMessage.data.text,
     messageVariationIndex: dmMessage.index,
-    imagePath: dmMessage.message.imagePath,
+    imagePath: dmMessage.data.imagePath,
   }
 }
 
@@ -175,12 +162,17 @@ const command: GluegunCommand = {
 
         engagementRecords.push(engagementRecord)
       } catch (err) {
+        if (err instanceof NotImplementedError) {
+          throw err
+        }
+
         print.info(err)
         print.error(`\nFailed to engage with ${prospect.username}.`)
 
         engagementErrors.push({
           prospectUsername: prospect.username,
-          errorMessage: err instanceof Error ? err.message : 'Unknown error.',
+          errorMessage:
+            err instanceof Error ? err.message : 'Unknown engagement error.',
         })
       }
     }

@@ -48,4 +48,16 @@ model Prospect {
   engagement        EngagementRecord?
   engagementErrorId Int?
   engagementError   EngagementErrorRecord?
+  followUps         FollowUp[]
+}
+
+model FollowUp {
+  id               Int      @id @default(autoincrement())
+  text             String
+  imagePath        String?
+  variationIndex   Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt()
+  prospectUsername String
+  prospect         Prospect @relation(fields: [prospectUsername], references: [username])
 }

@@ -1,6 +1,8 @@
+import dayjs = require('dayjs')
 import {
   EngagementErrorRecordCreateManyInput,
   EngagementRecordCreateManyInput,
+  FollowUpCreateManyInput,
   Prospect,
 } from '../types'
 import { db } from './client'
@@ -16,6 +18,12 @@ interface IProspectStore {
   // read
   getNotContactedProspects(limit?: number): Promise<Prospect[]>
   getOutreachStats(): Promise<OutReachStats>
+  getProspectsToFollowUp(options?: {
+    limit?: number
+    includeUsernames?: string[]
+    excludeUsernames?: string[]
+    minDaysSinceLastReply?: number
+  }): Promise<Prospect[]>
 
   // write
   addProspects(prospects: Prospect[]): Promise<void>
@@ -26,6 +34,8 @@ interface IProspectStore {
   addEngagementErrors(
     errors: EngagementErrorRecordCreateManyInput[]
   ): Promise<void>
+
+  addFollowUps(followUps: FollowUpCreateManyInput[]): Promise<void>
 }
 
 export const prospectStore: IProspectStore = {
@@ -72,6 +82,42 @@ export const prospectStore: IProspectStore = {
       totalProspectCounts,
     }
   },
+  async getProspectsToFollowUp(options) {
+    const thresholdDate = dayjs().subtract(
+      options?.minDaysSinceLastReply ?? 3,
+      'day'
+    )
+
+    return db.prospect.findMany({
+      where: {
+        engagement: {
+          OR: [
+            {
+              repliedAt: {
+                lte: thresholdDate.unix(),
+              },
+            },
+            {
+              createdAt: {
+                lte: thresholdDate.toDate(),
+              },
+              repliedAt: {
+                equals: null,
+              },
+            },
+          ],
+        },
+        engagementError: {
+          is: null,
+        },
+        username: {
+          in: options?.includeUsernames,
+          notIn: options?.excludeUsernames,
+        },
+      },
+      take: options?.limit,
+    })
+  },
   // write
   async addProspects(prospects) {
     await db.prospect.createMany({
@@ -86,6 +132,11 @@ export const prospectStore: IProspectStore = {
   async addEngagementErrors(errors) {
     await db.engagementErrorRecord.createMany({
       data: errors,
+    })
+  },
+  async addFollowUps(followUps) {
+    await db.followUp.createMany({
+      data: followUps,
     })
   },
 }
