@@ -18,22 +18,25 @@ const cmd: GluegunCommand = {
   alias: ['ff'],
   name: 'follow-up',
   run: async ({ print, parameters }) => {
-    const resp = await prompts({
+    const confirmRepliesUpdated = await prompts({
       type: 'confirm',
       name: 'value',
       message:
         'Have you run the "twreach update-replies" command in the last 3 days?',
     })
 
-    if (!resp.value) {
+    if (!confirmRepliesUpdated.value) {
       print.warning(
         'Cancelled follow-up operation, run "twreach update-replies" to update the DB.'
       )
       process.exit(0)
     }
 
-    // follow up with all prospects by default if the limit option is not provided
-    const limit: number | undefined = parameters.options.limit
+    const limit: number | undefined =
+      parameters.options.limit === 'inf'
+        ? undefined
+        : parameters.options.limit ?? 10
+
     const excludeUsernames: string[] = (
       (parameters.options.excludeUsernames as string | undefined) ?? ''
     )
@@ -52,6 +55,21 @@ const cmd: GluegunCommand = {
       includeUsernames,
       excludeUsernames,
     })
+
+    const confirmFollowUps = await prompts({
+      type: 'confirm',
+      name: 'value',
+      message: `You are about to follow up with these accounts, ${print.colors.green(
+        prospectsToFollowUp.map((p) => p.username).join(', ')
+      )}, ${print.colors.yellow('do you want to proceed')}?`,
+    })
+
+    if (!confirmFollowUps.value) {
+      print.warning(
+        'Cancelled follow-up operation, operator refuse to follow up with some prospects.'
+      )
+      process.exit(0)
+    }
 
     const followUps: FollowUpCreateManyInput[] = []
     const engagementErrors: EngagementErrorRecordCreateManyInput[] = []
@@ -93,7 +111,9 @@ const cmd: GluegunCommand = {
           })
         }
 
-        print.success(`Followed up with ${prospect.username}`)
+        print.info(
+          `Followed up with ${print.colors.green(JSON.stringify(followUp))}`
+        )
 
         followUps.push(followUp)
       } catch (err) {
@@ -117,7 +137,7 @@ const cmd: GluegunCommand = {
     await prospectStore.addEngagementErrors(engagementErrors)
     await prospectStore.addFollowUps(followUps)
 
-    print.success(`Followed up with ${followUps.length} prospects.`)
+    print.success(`\nFollowed up with ${followUps.length} prospects.`)
   },
 }
 

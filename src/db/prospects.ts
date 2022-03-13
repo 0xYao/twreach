@@ -116,6 +116,13 @@ export const prospectStore: IProspectStore = {
           in: options?.includeUsernames,
           notIn: options?.excludeUsernames,
         },
+        followUps: {
+          every: {
+            createdAt: {
+              lte: thresholdDate.toDate(),
+            },
+          },
+        },
       },
       take: options?.limit,
     })

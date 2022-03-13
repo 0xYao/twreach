@@ -63,6 +63,4 @@ MIT - see LICENSE
 
 # Todos
 
-1. Add a follow-up functionality, e.g. if the project hasn't replied in x days, DM them to follow up. Update teh schema to include a `lastRepliedAt` field.
 1. Add the functionality to batch and schedule send all messages automatically, e.g. DM 10 projects every hour, and schedule send the replies to the projects' tweets too.
-1. The generated prospects should also contain the userId.
