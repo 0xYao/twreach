@@ -21,12 +21,13 @@ const cmd: GluegunCommand = {
     const resp = await prompts({
       type: 'confirm',
       name: 'value',
-      message: 'Have you added/updated the replies of the prospects in the DB?',
+      message:
+        'Have you run the "twreach update-replies" command in the last 3 days?',
     })
 
     if (!resp.value) {
       print.warning(
-        'Cancelled follow-up operation, use the replies data from the Notion page to update the DB.'
+        'Cancelled follow-up operation, run "twreach update-replies" to update the DB.'
       )
       process.exit(0)
     }

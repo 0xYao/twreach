@@ -35,5 +35,5 @@ export interface CustomImplStore {
   getFollowUpVariations: GetDMVariationsFunc
 }
 
-// repliedAt is a date string
-export type UpdateReplyData = { repliedAt: string; prospectUsername: string }
+// repliedAt is a unix timestamp in milliseconds
+export type UpdateReplyData = { repliedAt: number; prospectUsername: string }
