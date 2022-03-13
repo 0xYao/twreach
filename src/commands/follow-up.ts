@@ -18,6 +18,19 @@ const cmd: GluegunCommand = {
   alias: ['ff'],
   name: 'follow-up',
   run: async ({ print, parameters }) => {
+    const resp = await prompts({
+      type: 'confirm',
+      name: 'value',
+      message: 'Have you added/updated the replies of the prospects in the DB?',
+    })
+
+    if (!resp.value) {
+      print.warning(
+        'Cancelled follow-up operation, use the replies data from the Notion page to update the DB.'
+      )
+      process.exit(0)
+    }
+
     const limit: number | undefined = parameters.options.limit
     const excludeUsernames: string[] = (
       (parameters.options.excludeUsernames as string | undefined) ?? ''
