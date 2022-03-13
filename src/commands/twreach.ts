@@ -20,12 +20,11 @@ import { random, sleep } from '../utils'
 
 type DMVariation = {
   text: string
-  withImage: boolean
+  imagePath?: string
 }
 
 // TODO:
 // 1. Allow message customisation and gitignore the messages.
-// 2. Replace the withImage field with the image string value. This requires a db schema change
 const getVariations = (
   name?: Maybe<string>,
   projectName?: Maybe<string>
@@ -36,17 +35,16 @@ const getVariations = (
     : `Congrats on all the success from the project 🎉.`
 
   const variationOne: DMVariation = {
-    withImage: false,
     text: `${greeting}\n\n${congratulations} I was just wondering if you knew who I could talk to about community engagement?\n\nI'm part of a ex-bigtech dev team building tooling for community managers (focused on incentivizing social engagement + rewarding top community members).\n\nLooking to learn more about problems that community leads are facing right now (and to see if there is anything we can build to make your life easier).\n\nWe’re launching with a couple of other projects soon @indexcoop and @soundmintxyz`,
   }
 
   const variationTwo: DMVariation = {
-    withImage: true,
+    imagePath: './src/assets/dashboard.jpeg',
     text: `${greeting}\n\n${congratulations} I was just wondering if you knew who I could talk to about community engagement\n\nI'm part of a ex-bigtech dev team building a social activity dashboard that helps you track and reward top community members for their contributions. Keen to hear your thoughts.\n\np.s. prototype design attached. we’re launching our alpha with a couple of other projects soon @indexcoop and @soundmintxyz`,
   }
 
   const variationThree: DMVariation = {
-    withImage: true,
+    imagePath: './src/assets/dashboard.jpeg',
     text: `${greeting}\n\n${congratulations} I was just wondering if you knew who I could talk to about community engagement?\n\nI'm part of an ex-bigtech dev team building tooling for some of the top DAOs/projects. We’re launching with @indexcoop and @soundmintxyz.\n\nUp for a short chat? Keen to learn about your background and the problems you faced when starting the project\n\np.s. prototype design of our first product (a social activity dashboard attached)`,
   }
 
@@ -149,9 +147,9 @@ const engageWithUser = async ({
   const dmMessage = getRandomDMMessage<DMVariation>(
     getVariations(greetingName, projectName)
   )
-  if (dmMessage.message.withImage) {
+  if (dmMessage.message.imagePath) {
     const mediaId = await twitterV1Client.uploadMedia(
-      './src/assets/dashboard.jpeg',
+      dmMessage.message.imagePath,
       { target: 'dm' }
     )
 
@@ -170,13 +168,12 @@ const engageWithUser = async ({
   print.success(`You messaged ${username}`)
 
   return {
-    replied: false,
     repliedTweetsCount,
     prospectUsername: username,
     preDMEngagement: _preDMEngagement,
     message: dmMessage.message.text,
     messageVariationIndex: dmMessage.index,
-    withImage: dmMessage.message.withImage,
+    imagePath: dmMessage.message.imagePath,
   }
 }
 
