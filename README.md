@@ -24,7 +24,7 @@ Note: you need to manually apply for elevated access if your Twitter App doesn't
 ### Add the Prospects to DB
 
 1. Ask the team members which Twitter outreach batch you are responsible for. (Note: the batches are generated via `twreach g-batches --batchSize 3` where the batchSize can be the number of people in the team)
-1. Copy the JSON and add the prospects to the DB: `mkdir -p src/tmp && mv my-batch.json src/tmp/my-batch.json && twreach create-prospects --jsonFile ./src/tmp/my-batch.json`
+1. Copy the JSON and add the prospects to the DB: `mkdir -p src/tmp && mv my-batch.json src/tmp/my-batch.json && twreach upsert-prospects --jsonFile ./src/tmp/my-batch.json`
 
 ### Running the project
 1. `cp src/templates/custom-impl.ts src/tmp/custom-impl.ts`, and update the methods such as `getDMVariations` per your needs.

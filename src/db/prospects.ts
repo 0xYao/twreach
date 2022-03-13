@@ -4,6 +4,7 @@ import {
   EngagementRecordCreateManyInput,
   FollowUpCreateManyInput,
   Prospect,
+  UpdateReplyData,
 } from '../types'
 import { db } from './client'
 
@@ -26,7 +27,7 @@ interface IProspectStore {
   }): Promise<Prospect[]>
 
   // write
-  addProspects(prospects: Prospect[]): Promise<void>
+  upsertProspects(prospects: Prospect[]): Promise<void>
   addEngagementRecords(
     engagements: EngagementRecordCreateManyInput[]
   ): Promise<void>
@@ -36,6 +37,7 @@ interface IProspectStore {
   ): Promise<void>
 
   addFollowUps(followUps: FollowUpCreateManyInput[]): Promise<void>
+  updateReplies(replies: UpdateReplyData[]): Promise<void>
 }
 
 export const prospectStore: IProspectStore = {
@@ -119,10 +121,22 @@ export const prospectStore: IProspectStore = {
     })
   },
   // write
-  async addProspects(prospects) {
-    await db.prospect.createMany({
-      data: prospects,
-    })
+  async upsertProspects(prospects) {
+    const txns = prospects.map((p) =>
+      db.prospect.upsert({
+        where: {
+          username: p.username,
+        },
+        create: {
+          ...p,
+        },
+        update: {
+          ...p,
+        },
+      })
+    )
+
+    await db.$transaction(txns)
   },
   async addEngagementRecords(engagements) {
     await db.engagementRecord.createMany({
@@ -138,5 +152,19 @@ export const prospectStore: IProspectStore = {
     await db.followUp.createMany({
       data: followUps,
     })
+  },
+  async updateReplies(replies) {
+    const txns = replies.map(({ repliedAt, prospectUsername }) =>
+      db.engagementRecord.update({
+        where: {
+          prospectUsername,
+        },
+        data: {
+          repliedAt: dayjs(repliedAt).unix(),
+        },
+      })
+    )
+
+    await db.$transaction(txns)
   },
 }

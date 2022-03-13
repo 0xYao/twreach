@@ -31,6 +31,7 @@ const cmd: GluegunCommand = {
       process.exit(0)
     }
 
+    // follow up with all prospects by default if the limit option is not provided
     const limit: number | undefined = parameters.options.limit
     const excludeUsernames: string[] = (
       (parameters.options.excludeUsernames as string | undefined) ?? ''

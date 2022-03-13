@@ -34,3 +34,6 @@ export interface CustomImplStore {
   getDMVariations: GetDMVariationsFunc
   getFollowUpVariations: GetDMVariationsFunc
 }
+
+// repliedAt is a date string
+export type UpdateReplyData = { repliedAt: string; prospectUsername: string }
