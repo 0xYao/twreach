@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs'
 import { GluegunCommand } from 'gluegun'
 import * as prompts from 'prompts'
 import { prospectStore } from '../db/prospects'
@@ -13,6 +14,31 @@ import {
 import { getNextFollowUp } from '../utils'
 import { NotImplementedError } from '../utils/errors'
 
+const parseUsernames = (value?: string | null) => {
+  if (!value) {
+    return undefined
+  }
+
+  if (value.endsWith('.json')) {
+    const buffer = readFileSync(value)
+    const data: string[] = JSON.parse(buffer.toString('utf-8'))
+
+    if (
+      !(data instanceof Array) ||
+      data.filter((d) => typeof d === 'string').length !== data.length
+    ) {
+      return undefined
+    }
+
+    return data.map((v) => v.trim())
+  }
+
+  return value.split(',').map((v) => v.trim())
+}
+
+/**
+ * By default, follow up with prospects who haven't replied to the first message before
+ */
 const cmd: GluegunCommand = {
   alias: ['ff'],
   name: 'follow-up',
@@ -36,18 +62,8 @@ const cmd: GluegunCommand = {
         ? undefined
         : parameters.options.limit ?? 10
 
-    const excludeUsernames: string[] = (
-      (parameters.options.excludeUsernames as string | undefined) ?? ''
-    )
-      .split(',')
-      .map((v) => v.trim())
-
-    const includeUsernames: string[] | undefined = parameters.options
-      .includeUsernames
-      ? (parameters.options.includeUsernames as string)
-          .split(',')
-          .map((val) => val.trim())
-      : undefined
+    const excludeUsernames = parseUsernames(parameters.options.excludeUsernames)
+    const includeUsernames = parseUsernames(parameters.options.includeUsernames)
 
     const prospectsToFollowUp = await prospectStore.getProspectsToFollowUp({
       limit,
@@ -58,15 +74,15 @@ const cmd: GluegunCommand = {
     const confirmFollowUps = await prompts({
       type: 'confirm',
       name: 'value',
-      message: `You are about to follow up with these accounts, ${print.colors.green(
+      message: `You are about to follow up with ${print.colors.green(
+        prospectsToFollowUp.length.toString()
+      )} prospects, ${print.colors.green(
         prospectsToFollowUp.map((p) => p.username).join(', ')
       )}, ${print.colors.yellow('do you want to proceed')}?`,
     })
 
     if (!confirmFollowUps.value) {
-      print.warning(
-        'Cancelled follow-up operation, operator refuse to follow up with some prospects.'
-      )
+      print.warning('Cancelled follow-up operations.')
       process.exit(0)
     }
 

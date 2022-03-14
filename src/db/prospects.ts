@@ -96,21 +96,12 @@ export const prospectStore: IProspectStore = {
     return db.prospect.findMany({
       where: {
         engagement: {
-          OR: [
-            {
-              repliedAt: {
-                lte: thresholdDate.unix(),
-              },
-            },
-            {
-              createdAt: {
-                lte: thresholdDate.toDate(),
-              },
-              repliedAt: {
-                equals: null,
-              },
-            },
-          ],
+          createdAt: {
+            lte: thresholdDate.toDate(),
+          },
+          repliedAt: {
+            equals: null,
+          },
         },
         engagementError: {
           is: null,
