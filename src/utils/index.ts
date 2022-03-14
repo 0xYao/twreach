@@ -1,3 +1,7 @@
+import { FollowUp } from '@prisma/client'
+import { customImplStore } from '../tmp/custom-impl'
+import { DMVariation, Prospect } from '../types'
+
 /**
  * @param time in ms
  * @returns wait for x ms
@@ -29,5 +33,29 @@ export const getRandomFromArray = <T>(
   return {
     index,
     data: dataArray[index],
+  }
+}
+
+export const getNextFollowUp = (
+  sentFollowUps: (FollowUp & { prospect: Prospect })[]
+): { index: number; data: DMVariation } | null => {
+  if (sentFollowUps.length === 0) {
+    return null
+  }
+
+  const lastFollowUp = sentFollowUps[sentFollowUps.length - 1]
+
+  const followUps = customImplStore.getFollowUpVariations({
+    name: lastFollowUp.prospect.greetingName,
+    projectName: lastFollowUp.prospect.projectName,
+  })
+
+  if (lastFollowUp.variationIndex >= followUps.length - 1) {
+    return null
+  }
+
+  return {
+    index: lastFollowUp.variationIndex + 1,
+    data: followUps[lastFollowUp.variationIndex + 1],
   }
 }

@@ -1,3 +1,4 @@
+import { FollowUp } from '@prisma/client'
 import dayjs = require('dayjs')
 import {
   EngagementErrorRecordCreateManyInput,
@@ -24,7 +25,9 @@ interface IProspectStore {
     includeUsernames?: string[]
     excludeUsernames?: string[]
     minDaysSinceLastReply?: number
-  }): Promise<Prospect[]>
+  }): Promise<
+    (Prospect & { followUps: (FollowUp & { prospect: Prospect })[] })[]
+  >
 
   // write
   upsertProspects(prospects: Prospect[]): Promise<void>
@@ -125,6 +128,16 @@ export const prospectStore: IProspectStore = {
         },
       },
       take: options?.limit,
+      include: {
+        followUps: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+          include: {
+            prospect: true,
+          },
+        },
+      },
     })
   },
   // write

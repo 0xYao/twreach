@@ -6,12 +6,11 @@ import {
   twitterV1Client,
   twitterV2Client,
 } from '../services/twitter/twitterClient'
-import { customImplStore } from '../tmp/custom-impl'
 import {
   EngagementErrorRecordCreateManyInput,
   FollowUpCreateManyInput,
 } from '../types'
-import { getRandomFromArray } from '../utils'
+import { getNextFollowUp } from '../utils'
 import { NotImplementedError } from '../utils/errors'
 
 const cmd: GluegunCommand = {
@@ -76,12 +75,14 @@ const cmd: GluegunCommand = {
 
     const followUpPromises = prospectsToFollowUp.map(async (prospect) => {
       try {
-        const variations = customImplStore.getFollowUpVariations({
-          name: prospect.greetingName,
-          projectName: prospect.projectName,
-        })
+        const dm = getNextFollowUp(prospect.followUps)
 
-        const dm = getRandomFromArray(variations)
+        if (!dm) {
+          print.warning(
+            `Ran out of follow-ups to send to ${prospect.username}.`
+          )
+          return
+        }
 
         const userId =
           prospect.userId ??
