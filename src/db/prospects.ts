@@ -25,9 +25,7 @@ interface IProspectStore {
     includeUsernames?: string[]
     excludeUsernames?: string[]
     minDaysSinceLastReply?: number
-  }): Promise<
-    (Prospect & { followUps: (FollowUp & { prospect: Prospect })[] })[]
-  >
+  }): Promise<(Prospect & { followUps: FollowUp[] })[]>
 
   // write
   upsertProspects(prospects: Prospect[]): Promise<void>
@@ -123,9 +121,6 @@ export const prospectStore: IProspectStore = {
         followUps: {
           orderBy: {
             createdAt: 'asc',
-          },
-          include: {
-            prospect: true,
           },
         },
       },

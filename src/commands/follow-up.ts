@@ -91,7 +91,10 @@ const cmd: GluegunCommand = {
 
     const followUpPromises = prospectsToFollowUp.map(async (prospect) => {
       try {
-        const dm = getNextFollowUp(prospect.followUps)
+        const dm = getNextFollowUp({
+          prospect,
+          sentFollowUps: prospect.followUps,
+        })
 
         if (!dm) {
           print.warning(

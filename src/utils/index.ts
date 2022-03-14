@@ -36,19 +36,26 @@ export const getRandomFromArray = <T>(
   }
 }
 
-export const getNextFollowUp = (
-  sentFollowUps: (FollowUp & { prospect: Prospect })[]
-): { index: number; data: DMVariation } | null => {
+export const getNextFollowUp = ({
+  prospect,
+  sentFollowUps,
+}: {
+  sentFollowUps: FollowUp[]
+  prospect: Prospect
+}): { index: number; data: DMVariation } | null => {
+  const followUps = customImplStore.getFollowUpVariations({
+    name: prospect.greetingName,
+    projectName: prospect.projectName,
+  })
+
   if (sentFollowUps.length === 0) {
-    return null
+    return {
+      index: 0,
+      data: followUps[0],
+    }
   }
 
   const lastFollowUp = sentFollowUps[sentFollowUps.length - 1]
-
-  const followUps = customImplStore.getFollowUpVariations({
-    name: lastFollowUp.prospect.greetingName,
-    projectName: lastFollowUp.prospect.projectName,
-  })
 
   if (lastFollowUp.variationIndex >= followUps.length - 1) {
     return null
